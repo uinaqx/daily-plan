@@ -580,7 +580,7 @@
         <div class="divider"></div>
         <div class="bd">
           <div class="formRow">
-            <input class="in" id="taskText" placeholder="任务内容，例如：复习概率论 / 整理论文笔记 / 跑步 30 分钟" />
+            <input class="in" id="taskText" placeholder="任务内容，例如：复习高数 / 整理笔记 / 跑步" />
             <input class="in" id="taskMin" type="number" min="1" step="1" placeholder="预计分钟" />
             <button class="btn primary" id="addTask">添加</button>
           </div>
@@ -644,7 +644,6 @@
                     <div style="width:60px;text-align:right;" id="barMinTxt">0%</div>
                   </div>
                   <div class="hint" style="margin-top:2px;">
-                    两条进度：按<strong>任务数量</strong>和按<strong>分钟时长</strong>各算一次，更真实。
                   </div>
                 </div>
               </div>
@@ -667,7 +666,7 @@
                 <g id="trendDots"></g>
                 <g id="trendAxis"></g>
               </svg>
-              <div class="hint">数据来自本机 localStorage；如果你某天没有创建任务，会显示为 0%。</div>
+              <div class="hint">数据来自本地；如果你某天没有创建任务，会显示为 0%。</div>
             </div>
 
             <div class="vizCard">
