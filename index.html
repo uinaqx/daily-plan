@@ -24,6 +24,7 @@
       --r: 18px;
       --r2: 26px;
       --blur: 16px;
+      --hmSize: 34px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
@@ -150,7 +151,7 @@
       border-color: rgba(239,68,68,.35);
       background: linear-gradient(135deg, rgba(239,68,68,.16), rgba(0,0,0,0));
     }
-    .btn.small{padding:7px 10px; border-radius: 10px; font-weight: 650; font-size: 12px;}
+    .btn.small{padding:7px 10px; border-radius: 9px; font-weight: 650; font-size: 12px;}
     .btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
 
     .grid{
@@ -505,11 +506,67 @@
     }
     .hint{font-size:12px; color: var(--muted2); line-height: 1.6;}
 
+
+    /* Month heatmap */
+    .monthBar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+    .heatmapWrap{display:flex; flex-direction:column; gap:8px;}
+    .heatmapWeekdays{
+      display:grid;
+      grid-template-columns: repeat(7, var(--hmSize));
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted2);
+      padding: 0 2px;
+      user-select:none;
+      justify-content:center;
+    }
+    .heatmapGrid{
+      display:grid;
+      grid-template-columns: repeat(7, var(--hmSize));
+      gap: 6px;
+      padding: 2px;
+      justify-content:center;
+    }
+    @media (max-width: 520px){
+      :root{ --hmSize: 30px; }
+    }
+    .hmCell{width: var(--hmSize);
+      height: var(--hmSize);
+      
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      cursor:pointer;
+      position:relative;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease, opacity .12s ease;
+      box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
+      overflow:hidden;
+    }
+    [data-theme="light"] .hmCell{background: rgba(0,0,0,.03);}
+    .hmCell:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18);}
+    .hmCell:active{transform: translateY(0) scale(.98); opacity:.92;}
+    .hmCell.empty{
+      cursor:default;
+      opacity:.35;
+    }
+    .hmCell.empty:hover{transform:none; border-color: var(--stroke);}
+    .hmCell .d{
+      position:absolute; left:7px; bottom:6px;
+      font-size: 13px;
+      font-weight: 850;
+      color: rgba(255,255,255,.85);
+      text-shadow: 0 2px 10px rgba(0,0,0,.35);
+      letter-spacing: .1px;
+    }
+    [data-theme="light"] .hmCell .d{color: rgba(0,0,0,.70); text-shadow:nonee;}
+
     /* Toast */
     .toast{
       position:fixed;
-      right: 14px;
-      bottom: 14px;
+      left: 50%;
+      top: 14px;
+      transform: translateX(-50%);
       z-index: 80;
       display:flex;
       flex-direction:column;
@@ -565,7 +622,7 @@
 
       <div class="actions">
         <button class="btn" id="themeBtn" title="切换深浅色">🌓 主题</button>
-        <button class="btn" id="openBackup">导出/导入</button>
+        <button class="btn" id="openMonth">本月完成情况</button>
         <button class="btn danger" id="clearDay">清空当天</button>
       </div>
     </header>
@@ -687,25 +744,36 @@
     </div>
   </div>
 
-  <!-- Backup modal -->
-  <div class="modalMask" id="modalMask">
-    <div class="modal" role="dialog" aria-modal="true" aria-label="backup modal">
+  <!-- Month heatmap modal -->
+  <div class="modalMask" id="monthMask">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="month summary modal">
       <div class="mhd">
-        <h3>导出 / 导入（全量数据）</h3>
-        <button class="btn small" id="closeBackup">关闭</button>
+        <h3 id="monthTitle">本月完成情况</h3>
+        <button class="btn small" id="closeMonth">关闭</button>
       </div>
       <div class="mbd">
-        <textarea class="ta" id="backupText" placeholder="这里会显示导出的 JSON。导入时把 JSON 粘贴到这里。"></textarea>
-        <div class="row">
-          <button class="btn primary" id="exportBtn">导出 JSON</button>
-          <button class="btn" id="copyBtn">复制</button>
-          <button class="btn danger" id="importBtn">导入（覆盖）</button>
+        <div class="hint" id="monthHint" style="margin-bottom:10px;">
+          方格颜色越深，代表当天<strong>已完成时长</strong>越长。点击某一天可跳转到当天计划。
         </div>
-        <div class="hint">
-          注意：导入会覆盖当前浏览器里已有的数据。建议先导出一份备份再导入。
+        <div class="monthBar">
+          <button class="btn small" id="monthPrev">◀︎ 上个月</button>
+          <button class="btn small ghost" id="monthNow">回到本月</button>
+          <button class="btn small" id="monthNext">下个月 ▶︎</button>
+        </div>
+        <div class="heatmapWrap">
+          <div class="heatmapWeekdays" aria-hidden="true">
+            <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
+          </div>
+          <div class="heatmapGrid" id="monthGrid"></div>
+        </div>
+        <div class="hint" style="margin-top:10px;">
+          提示：数据来自本机 localStorage；如果某天没有任务，默认为 0。
         </div>
       </div>
     </div>
+  </div>
+
+</div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -738,11 +806,25 @@
     el.className = "item";
     el.textContent = msg;
     box.appendChild(el);
-    setTimeout(()=>{ el.style.opacity = "0"; el.style.transform = "translateY(6px)"; }, 1700);
-    setTimeout(()=>{ el.remove(); }, 2100);
+    setTimeout(()=>{ el.style.opacity = "0"; el.style.transform = "translateY(6px)"; }, 2000);
+    setTimeout(()=>{ el.remove(); }, 2350);
   }
 
-  function setSavedBadge(text){
+  
+  function pickCongrats(taskText){
+    const pool = [
+      "✅ 干得漂亮！已完成一项任务",
+      "🎉 Nice！又推进了一步",
+      "🌟 继续保持！完成 +1",
+      "🚀 很好！进度在加速",
+      "🥳 打卡成功！"
+    ];
+    const base = pool[Math.floor(Math.random()*pool.length)];
+    const t = String(taskText||"").trim();
+    return t ? `${base}：${t}` : base;
+  }
+
+function setSavedBadge(text){
     $("saveBadge").textContent = text;
   }
 
@@ -860,7 +942,11 @@
         <path d="M6.4 11.2 3.5 8.3l-1 1 3.9 3.9L14 5.6l-1-1-6.6 6.6Z" fill="currentColor"></path>
       </svg>`;
       chk.onclick = () => {
+        const wasDone = t.done;
         t.done = !t.done;
+        if(!wasDone && t.done){
+          toast(pickCongrats(t.text));
+        }
         saveForDate();
         renderAll(true);
       };
@@ -1120,84 +1206,118 @@
     toast("已修改");
   }
 
-  // ===================== Backup =====================
-  function allKeys(){
-    const keys = [];
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
-      if(k && k.startsWith(STORAGE_PREFIX)) keys.push(k);
-    }
-    keys.sort();
-    return keys;
+  // ===================== Month heatmap =====================
+  let monthView = new Date(); // which month is shown in modal
+
+  function daysInMonth(y, mIndex){
+    return new Date(y, mIndex+1, 0).getDate();
   }
 
-  function exportAll(){
-    const obj = {};
-    for(const k of allKeys()){
-      obj[k] = safeParse(localStorage.getItem(k) || "[]", []);
-    }
-    const payload = {
-      version: 2,
-      exportedAt: new Date().toISOString(),
-      data: obj
-    };
-    $("backupText").value = JSON.stringify(payload, null, 2);
-    toast("已导出");
+  function dateFromYMD(y,mIndex,day){
+    const d = new Date(y, mIndex, day);
+    d.setHours(12,0,0,0);
+    return d;
   }
 
-  async function copyText(){
-    const text = $("backupText").value || "";
-    if(!text.trim()){
-      toast("没有内容可复制");
-      return;
+  function weekdayMon0(d){
+    // JS: Sun=0..Sat=6  -> Mon=0..Sun=6
+    return (d.getDay() + 6) % 7;
+  }
+
+  function getDayDoneMinutes(dateStr){
+    const raw = localStorage.getItem(keyOf(dateStr));
+    const arr = raw ? safeParse(raw, []) : [];
+    const st = computeStats(arr);
+    return st.doneMin || 0;
+  }
+
+  function buildMonthGrid(viewDate){
+    const y = viewDate.getFullYear();
+    const m = viewDate.getMonth(); // 0-11
+    const first = dateFromYMD(y,m,1);
+    const dim = daysInMonth(y,m);
+    const offset = weekdayMon0(first); // empty cells before day1
+
+    const vals = [];
+    for(let day=1; day<=dim; day++){
+      const ds = formatDate(dateFromYMD(y,m,day));
+      vals.push(getDayDoneMinutes(ds));
     }
-    try{
-      if(navigator.clipboard?.writeText){
-        await navigator.clipboard.writeText(text);
-        toast("已复制");
-      }else{
-        $("backupText").select();
-        document.execCommand("copy");
-        toast("已复制");
+    const maxV = Math.max(0, ...vals);
+
+    $("monthTitle").textContent = `${y}-${pad2(m+1)} 本月完成情况`;
+    const grid = $("monthGrid");
+    grid.innerHTML = "";
+
+    // 6 weeks * 7 days = 42 cells, enough for any month layout
+    const totalCells = 42;
+    for(let i=0;i<totalCells;i++){
+      const cell = document.createElement("div");
+      cell.className = "hmCell";
+      const dayNum = i - offset + 1;
+
+      if(dayNum < 1 || dayNum > dim){
+        cell.classList.add("empty");
+        grid.appendChild(cell);
+        continue;
       }
-    }catch{
-      toast("复制失败：请手动全选复制");
+
+      const d = dateFromYMD(y,m,dayNum);
+      const dateStr = formatDate(d);
+      const doneMin = vals[dayNum-1];
+
+      // intensity: 0..1
+      const t = maxV ? (doneMin / maxV) : 0;
+      // make low values still visible
+      const alpha = doneMin === 0 ? 0.06 : (0.12 + 0.78 * t);
+
+      const isLight = document.documentElement.dataset.theme === "light";
+      const base = isLight ? "45,212,191" : "45,212,191"; // accent2
+      cell.style.background = `rgba(${base}, ${alpha})`;
+      cell.style.borderColor = isLight ? "rgba(0,0,0,.10)" : "rgba(255,255,255,.14)";
+
+      cell.title = `${dateStr} · 已完成 ${doneMin} 分钟`;
+      cell.dataset.date = dateStr;
+
+      const label = document.createElement("div");
+      label.className = "d";
+      label.textContent = String(dayNum);
+      cell.appendChild(label);
+
+      cell.onclick = () => {
+        // jump to day, then close
+        const target = new Date(dateStr + "T12:00:00");
+        currentDate = target;
+        loadForDate(currentDate);
+        renderAll();
+        closeMonthModal();
+      };
+
+      grid.appendChild(cell);
     }
+
+    // hint (max)
+    $("monthHint").innerHTML = `方格颜色越深，代表当天<strong>已完成时长</strong>越长（本月最大：<strong>${maxV}</strong> 分钟）。点击某一天可跳转到当天计划。`;
   }
 
-  function importAll(){
-    const raw = $("backupText").value || "";
-    if(!raw.trim()){
-      toast("请先粘贴 JSON");
-      return;
-    }
-    let payload;
-    try{
-      payload = JSON.parse(raw);
-    }catch{
-      toast("JSON 格式不正确");
-      return;
-    }
-    if(!payload || typeof payload !== "object" || !payload.data){
-      toast("导入数据结构不对");
-      return;
-    }
-    if(!confirm("导入会覆盖当前浏览器中已有的数据。确定继续吗？")) return;
-
-    // remove existing plan keys
-    for(const k of allKeys()) localStorage.removeItem(k);
-
-    // import
-    const data = payload.data;
-    for(const k in data){
-      if(k.startsWith(STORAGE_PREFIX)){
-        localStorage.setItem(k, JSON.stringify(data[k] || []));
-      }
-    }
-    toast("导入完成");
-    loadForDate(currentDate);
-    renderAll(true);
+  function openMonthModal(){
+    monthView = new Date(currentDate);
+    monthView.setDate(1);
+    $("monthMask").style.display = "flex";
+    buildMonthGrid(monthView);
   }
+
+  function closeMonthModal(){
+    $("monthMask").style.display = "none";
+  }
+
+  function shiftMonth(delta){
+    monthView = new Date(monthView);
+    monthView.setMonth(monthView.getMonth() + delta);
+    monthView.setDate(1);
+    buildMonthGrid(monthView);
+  }
+
 
   // ===================== Date nav =====================
   function goDay(delta){
@@ -1231,19 +1351,37 @@
     if(Date.now() - fxTimer < 1500) return;
     fxTimer = Date.now();
 
-    const count = 140;
+    const count = 180;
     const w = window.innerWidth, h = window.innerHeight;
-    for(let i=0;i<count;i++){
+
+    // Left-bottom cannon
+    for(let i=0;i<count/2;i++){
       confetti.push({
-        x: w*0.5 + (Math.random()-0.5)*120,
-        y: h*0.30 + (Math.random()-0.5)*40,
-        vx: (Math.random()-0.5)*6,
-        vy: Math.random()*-6 - 2,
-        g: 0.16 + Math.random()*0.12,
+        x: 30 + Math.random()*40,
+        y: h - 30 - Math.random()*20,
+        vx: 3.5 + Math.random()*5.5,      // to the right
+        vy: -10 - Math.random()*8,        // up
+        g: 0.20 + Math.random()*0.10,
         r: 2 + Math.random()*3,
         a: 1,
         rot: Math.random()*Math.PI,
-        vr: (Math.random()-0.5)*0.2,
+        vr: (Math.random()-0.5)*0.25,
+        hue: Math.random()*360
+      });
+    }
+
+    // Right-bottom cannon
+    for(let i=0;i<count/2;i++){
+      confetti.push({
+        x: w - 30 - Math.random()*40,
+        y: h - 30 - Math.random()*20,
+        vx: - (3.5 + Math.random()*5.5),  // to the left
+        vy: -10 - Math.random()*8,        // up
+        g: 0.20 + Math.random()*0.10,
+        r: 2 + Math.random()*3,
+        a: 1,
+        rot: Math.random()*Math.PI,
+        vr: (Math.random()-0.5)*0.25,
         hue: Math.random()*360
       });
     }
@@ -1302,18 +1440,14 @@
       toast("主题已切换");
     };
 
-    // Backup modal
-    $("openBackup").onclick = () => {
-      $("modalMask").style.display = "flex";
-      exportAll();
-      $("backupText").focus();
-    };
-    $("closeBackup").onclick = () => $("modalMask").style.display = "none";
-    $("modalMask").addEventListener("click", (e)=>{ if(e.target === $("modalMask")) $("modalMask").style.display = "none"; });
+    // Month heatmap modal
+    $("openMonth").onclick = openMonthModal;
+    $("closeMonth").onclick = closeMonthModal;
+    $("monthMask").addEventListener("click", (e)=>{ if(e.target === $("monthMask")) closeMonthModal(); });
 
-    $("exportBtn").onclick = exportAll;
-    $("copyBtn").onclick = copyText;
-    $("importBtn").onclick = importAll;
+    $("monthPrev").onclick = () => shiftMonth(-1);
+    $("monthNext").onclick = () => shiftMonth(1);
+    $("monthNow").onclick = () => { monthView = new Date(currentDate); monthView.setDate(1); buildMonthGrid(monthView); };
 
     // Quick ops
     $("copyUnfinished").onclick = copyUnfinishedToTomorrow;
