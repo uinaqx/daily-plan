@@ -1,0 +1,1339 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>每日计划 · 高级版</title>
+  <style>
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1022;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --muted2: rgba(255,255,255,.45);
+      --accent:#7C5CFF;
+      --accent2:#2DD4BF;
+      --warn:#F59E0B;
+      --danger:#EF4444;
+      --ok:#22C55E;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --shadow2: 0 10px 30px rgba(0,0,0,.35);
+      --r: 18px;
+      --r2: 26px;
+      --blur: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    /* Light mode */
+    [data-theme="light"]{
+      --bg0:#F7F7FB;
+      --bg1:#FFFFFF;
+      --card: rgba(0,0,0,.04);
+      --card2: rgba(0,0,0,.06);
+      --stroke: rgba(0,0,0,.10);
+      --text: rgba(0,0,0,.86);
+      --muted: rgba(0,0,0,.60);
+      --muted2: rgba(0,0,0,.45);
+      --shadow: 0 18px 60px rgba(10,10,20,.10);
+      --shadow2: 0 10px 30px rgba(10,10,20,.08);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 12% 12%, rgba(124,92,255,.35), transparent 55%),
+        radial-gradient(900px 550px at 88% 18%, rgba(45,212,191,.26), transparent 55%),
+        radial-gradient(900px 650px at 50% 95%, rgba(245,158,11,.16), transparent 58%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 55%, var(--bg0));
+      overflow-x:hidden;
+    }
+
+    /* Subtle animated aurora */
+    .aurora{
+      position:fixed; inset:-80px;
+      background:
+        radial-gradient(600px 420px at 25% 40%, rgba(124,92,255,.25), transparent 60%),
+        radial-gradient(620px 420px at 70% 30%, rgba(45,212,191,.20), transparent 60%),
+        radial-gradient(520px 420px at 60% 75%, rgba(236,72,153,.14), transparent 60%);
+      filter: blur(30px);
+      opacity:.85;
+      pointer-events:none;
+      mix-blend-mode: screen;
+      animation: floaty 12s ease-in-out infinite alternate;
+    }
+    @keyframes floaty{
+      0%{transform: translate3d(-10px,-8px,0) scale(1.02)}
+      100%{transform: translate3d(10px,8px,0) scale(1.06)}
+    }
+
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+      position:relative;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin: 10px 0 18px;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .title h1{
+      margin:0;
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing:.2px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--card);
+      border:1px solid var(--stroke);
+      color: var(--muted);
+      font-size: 12px;
+      width: fit-content;
+      backdrop-filter: blur(var(--blur));
+      box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
+    }
+    .pill .dot{
+      width:8px; height:8px; border-radius:99px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 0 3px rgba(124,92,255,.18);
+    }
+
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+
+    .btn{
+      border: 1px solid var(--stroke);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 650;
+      font-size: 13px;
+      display:inline-flex; align-items:center; gap:8px;
+      backdrop-filter: blur(var(--blur));
+      box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, var(--shadow2);
+      transition: transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease, opacity .15s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18); background: var(--card2);}
+    .btn:active{transform: translateY(0px) scale(.98); opacity:.92;}
+    .btn.primary{
+      border: 1px solid rgba(124,92,255,.45);
+      background: linear-gradient(135deg, rgba(124,92,255,.22), rgba(45,212,191,.14));
+    }
+    .btn.ghost{
+      background: transparent;
+      box-shadow: none;
+    }
+    .btn.danger{
+      border-color: rgba(239,68,68,.35);
+      background: linear-gradient(135deg, rgba(239,68,68,.16), rgba(0,0,0,0));
+    }
+    .btn.small{padding:7px 10px; border-radius: 10px; font-weight: 650; font-size: 12px;}
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.12fr .88fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr; }
+      header{align-items:stretch; flex-direction:column;}
+      .actions{justify-content:flex-start;}
+    }
+
+    .card{
+      border-radius: var(--r2);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(var(--blur));
+      overflow:hidden;
+      position:relative;
+    }
+    [data-theme="light"] .card{
+      background: linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.02));
+    }
+    .card .hd{
+      padding: 16px 16px 12px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .card .hd h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .card .bd{padding: 0 16px 16px;}
+    .divider{height:1px; background: var(--stroke);}
+
+    /* Date nav */
+    .dateNav{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      margin-top: 2px;
+    }
+    .dateBox{
+      display:flex; align-items:baseline; gap:10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+      backdrop-filter: blur(var(--blur));
+    }
+    .dateBox .date{
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+    .dateBox .weekday{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    /* Add form */
+    .formRow{
+      display:grid;
+      grid-template-columns: 1fr 160px 112px;
+      gap:10px;
+      margin-top: 10px;
+    }
+    @media (max-width: 680px){
+      .formRow{grid-template-columns: 1fr; }
+    }
+    .in{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,.12);
+      color: var(--text);
+      outline:none;
+      transition: border-color .15s ease, transform .15s ease, background .15s ease;
+    }
+    [data-theme="light"] .in{background: rgba(255,255,255,.80);}
+    .in:focus{
+      border-color: rgba(124,92,255,.55);
+      box-shadow: 0 0 0 4px rgba(124,92,255,.16);
+      transform: translateY(-1px);
+    }
+    .help{
+      margin-top:10px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.55;
+    }
+    .kbd{
+      font-family: var(--mono);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* Stats */
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 980px){
+      .stats{grid-template-columns: repeat(2, 1fr);}
+    }
+    .stat{
+      border-radius: 16px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      padding: 12px 12px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
+    }
+    [data-theme="light"] .stat{background: rgba(0,0,0,.03);}
+    .stat .k{font-size: 11px; color: var(--muted); font-weight: 700;}
+    .stat .v{font-size: 18px; font-weight: 850; margin-top: 6px;}
+    .stat .s{font-size: 11px; color: var(--muted2); margin-top: 6px;}
+
+    /* Charts */
+    .vizGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .vizCard{
+      border-radius: 18px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      padding: 12px;
+      overflow:hidden;
+      position:relative;
+    }
+    [data-theme="light"] .vizCard{background: rgba(0,0,0,.03);}
+    .vizTitle{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      margin-bottom: 10px;
+    }
+    .vizTitle .l{
+      font-size: 12px; color: var(--muted); font-weight: 750;
+      display:flex; align-items:center; gap:8px;
+    }
+    .badge{
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      color: var(--muted);
+      background: rgba(255,255,255,.06);
+    }
+
+    .ringWrap{
+      display:flex; gap:14px; align-items:center;
+      min-height: 120px;
+    }
+    .ring{
+      width: 110px; height: 110px;
+      flex: 0 0 auto;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
+    }
+    .ring text{font-weight: 850; fill: var(--text);}
+    .ring .sub{fill: var(--muted); font-weight: 750;}
+    .ring .track{stroke: rgba(255,255,255,.14);}
+    [data-theme="light"] .ring .track{stroke: rgba(0,0,0,.12);}
+    .ring .prog{
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      stroke: url(#grad);
+      transition: stroke-dashoffset .6s cubic-bezier(.2,.9,.2,1);
+    }
+
+    .bars{
+      width: 100%;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .bar{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      font-size: 12px; color: var(--muted);
+      font-weight: 650;
+    }
+    .bar .meter{
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      overflow:hidden;
+      position:relative;
+    }
+    [data-theme="light"] .bar .meter{background: rgba(0,0,0,.03);}
+    .bar .fill{
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(124,92,255,.90), rgba(45,212,191,.85));
+      box-shadow: 0 0 0 1px rgba(255,255,255,.10) inset;
+      transition: width .55s cubic-bezier(.2,.9,.2,1);
+    }
+
+    /* Task list */
+    .tasks{
+      display:flex; flex-direction:column; gap:10px;
+      margin-top: 10px;
+    }
+    .task{
+      border-radius: 18px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      padding: 12px 12px;
+      display:grid;
+      grid-template-columns: 22px 1fr auto;
+      gap: 12px;
+      align-items:center;
+      position:relative;
+      overflow:hidden;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    [data-theme="light"] .task{background: rgba(0,0,0,.03);}
+    .task:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18);}
+    .task::before{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(480px 240px at 10% 0%, rgba(124,92,255,.16), transparent 60%);
+      opacity:0;
+      transition: opacity .2s ease;
+      pointer-events:none;
+    }
+    .task:hover::before{opacity:1;}
+    .chk{
+      width: 18px; height: 18px;
+      border-radius: 6px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .chk:active{transform: scale(.95);}
+    .chk svg{opacity:0; transform: scale(.6); transition: opacity .12s ease, transform .12s ease;}
+    .task.done .chk{
+      border-color: rgba(34,197,94,.40);
+      background: rgba(34,197,94,.12);
+    }
+    .task.done .chk svg{opacity:1; transform: scale(1);}
+    .tMain{
+      display:flex; flex-direction:column; gap:4px;
+      min-width:0;
+    }
+    .tText{
+      font-size: 14px;
+      font-weight: 750;
+      letter-spacing:.1px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .tMeta{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .tag{
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      color: var(--muted);
+      background: rgba(255,255,255,.06);
+      display:inline-flex; gap:6px; align-items:center;
+    }
+    .tag .miniDot{width:6px; height:6px; border-radius:999px; background: rgba(124,92,255,.85);}
+    .task.done .tText{
+      text-decoration: line-through;
+      opacity: .7;
+    }
+    .task.done .tag .miniDot{background: rgba(34,197,94,.9);}
+    .tBtns{
+      display:flex; gap:8px; align-items:center; justify-content:flex-end;
+    }
+
+    /* Empty */
+    .empty{
+      border-radius: 22px;
+      border: 1px dashed rgba(255,255,255,.20);
+      padding: 20px;
+      text-align:center;
+      color: var(--muted);
+      background: rgba(255,255,255,.03);
+      margin-top: 10px;
+    }
+    [data-theme="light"] .empty{border-color: rgba(0,0,0,.18); background: rgba(0,0,0,.02);}
+    .empty strong{color: var(--text);}
+
+    /* Modal */
+    .modalMask{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modal{
+      width:min(860px, 96vw);
+      border-radius: 24px;
+      border:1px solid var(--stroke);
+      background: rgba(10,10,20,.78);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    [data-theme="light"] .modal{background: rgba(255,255,255,.92);}
+    .modal .mhd{
+      padding: 14px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid var(--stroke);
+    }
+    .modal .mhd h3{margin:0; font-size: 14px; color: var(--text); font-weight: 850;}
+    .modal .mbd{padding: 14px;}
+    .ta{
+      width:100%;
+      min-height: 210px;
+      border-radius: 16px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,.15);
+      color: var(--text);
+      padding: 12px;
+      font-family: var(--mono);
+      outline:none;
+      resize: vertical;
+    }
+    [data-theme="light"] .ta{background: rgba(0,0,0,.05);}
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top: 10px;
+    }
+    .hint{font-size:12px; color: var(--muted2); line-height: 1.6;}
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 80;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      pointer-events:none;
+    }
+    .toast .item{
+      pointer-events:none;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(16px);
+      color: var(--text);
+      padding: 10px 12px;
+      box-shadow: var(--shadow2);
+      font-size: 12px;
+      animation: pop .25s ease-out;
+      max-width: 320px;
+    }
+    [data-theme="light"] .toast .item{background: rgba(255,255,255,.85);}
+    @keyframes pop{
+      from{transform: translateY(8px); opacity:0}
+      to{transform: translateY(0); opacity:1}
+    }
+
+    /* Confetti canvas */
+    #fx{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index: 60;
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora"></div>
+  <canvas id="fx"></canvas>
+
+  <div class="wrap" id="app">
+    <header>
+      <div class="title">
+        <h1>每日计划 <span class="pill"><span class="dot"></span><span id="subTitle">离线可用 · 自动保存</span></span></h1>
+        <div class="dateNav">
+          <button class="btn small" id="prevDay">◀︎ 上一天</button>
+          <div class="dateBox" title="当前日期">
+            <div class="date" id="dateText">0000-00-00</div>
+            <div class="weekday" id="weekText">周一</div>
+          </div>
+          <button class="btn small" id="nextDay">下一天 ▶︎</button>
+          <button class="btn small ghost" id="todayBtn">回到今天</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="themeBtn" title="切换深浅色">🌓 主题</button>
+        <button class="btn" id="openBackup">导出/导入</button>
+        <button class="btn danger" id="clearDay">清空当天</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Left: planner -->
+      <section class="card">
+        <div class="hd">
+          <h2>今天要做什么</h2>
+          <div class="badge" id="saveBadge">已保存</div>
+        </div>
+        <div class="divider"></div>
+        <div class="bd">
+          <div class="formRow">
+            <input class="in" id="taskText" placeholder="任务内容，例如：复习概率论 / 整理论文笔记 / 跑步 30 分钟" />
+            <input class="in" id="taskMin" type="number" min="1" step="1" placeholder="预计分钟" />
+            <button class="btn primary" id="addTask">添加</button>
+          </div>
+          <div class="help">
+            小技巧：在输入框里按 <span class="kbd">Enter</span> 也能添加。任务会自动按日期保存到浏览器本地。
+          </div>
+
+          <div class="stats" id="stats">
+            <div class="stat"><div class="k">总任务</div><div class="v" id="stTotal">0</div><div class="s">条</div></div>
+            <div class="stat"><div class="k">已完成</div><div class="v" id="stDone">0</div><div class="s">条</div></div>
+            <div class="stat"><div class="k">预计总时长</div><div class="v" id="stAllMin">0</div><div class="s">分钟</div></div>
+            <div class="stat"><div class="k">已完成时长</div><div class="v" id="stDoneMin">0</div><div class="s">分钟</div></div>
+          </div>
+
+          <div class="tasks" id="taskList"></div>
+          <div class="empty" id="emptyBox" style="display:none;">
+            <div style="font-size:34px;margin-bottom:6px;">🐾</div>
+            <div><strong>今天还没有任务</strong>，先加一条试试。</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: dashboard -->
+      <aside class="card">
+        <div class="hd">
+          <h2>进度面板</h2>
+          <div class="badge" id="rateBadge">0%</div>
+        </div>
+        <div class="divider"></div>
+        <div class="bd">
+          <div class="vizGrid">
+            <div class="vizCard">
+              <div class="vizTitle">
+                <div class="l">完成率 · 环形进度</div>
+                <div class="badge" id="ringLabel">0 / 0</div>
+              </div>
+              <div class="ringWrap">
+                <svg class="ring" viewBox="0 0 120 120" aria-label="progress ring">
+                  <defs>
+                    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="rgba(124,92,255,.95)" />
+                      <stop offset="100%" stop-color="rgba(45,212,191,.90)" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="track" cx="60" cy="60" r="46" fill="none" stroke-width="12"></circle>
+                  <circle class="prog" cx="60" cy="60" r="46" fill="none" stroke-width="12"
+                          stroke-dasharray="289.0" stroke-dashoffset="289.0"></circle>
+                  <text x="60" y="57" text-anchor="middle" font-size="18" id="ringPct">0%</text>
+                  <text x="60" y="77" text-anchor="middle" font-size="11" class="sub" id="ringSub">今天</text>
+                </svg>
+
+                <div class="bars">
+                  <div class="bar">
+                    <div style="width:86px;">完成任务</div>
+                    <div class="meter"><div class="fill" id="barDone"></div></div>
+                    <div style="width:60px;text-align:right;" id="barDoneTxt">0%</div>
+                  </div>
+                  <div class="bar">
+                    <div style="width:86px;">完成时长</div>
+                    <div class="meter"><div class="fill" id="barMin"></div></div>
+                    <div style="width:60px;text-align:right;" id="barMinTxt">0%</div>
+                  </div>
+                  <div class="hint" style="margin-top:2px;">
+                    两条进度：按<strong>任务数量</strong>和按<strong>分钟时长</strong>各算一次，更真实。
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="vizCard">
+              <div class="vizTitle">
+                <div class="l">近 7 天 · 完成率趋势</div>
+                <div class="badge" id="trendBadge">—</div>
+              </div>
+              <svg id="trend" viewBox="0 0 600 160" width="100%" height="160" role="img" aria-label="7-day trend">
+                <defs>
+                  <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(124,92,255,.28)" />
+                    <stop offset="100%" stop-color="rgba(124,92,255,0)" />
+                  </linearGradient>
+                </defs>
+                <path id="trendArea" d="" fill="url(#trendFill)"></path>
+                <path id="trendLine" d="" fill="none" stroke="rgba(45,212,191,.85)" stroke-width="3" stroke-linecap="round"></path>
+                <g id="trendDots"></g>
+                <g id="trendAxis"></g>
+              </svg>
+              <div class="hint">数据来自本机 localStorage；如果你某天没有创建任务，会显示为 0%。</div>
+            </div>
+
+            <div class="vizCard">
+              <div class="vizTitle">
+                <div class="l">快捷操作</div>
+                <div class="badge">效率</div>
+              </div>
+              <div class="row">
+                <button class="btn small" id="copyUnfinished">复制未完成到明天</button>
+                <button class="btn small" id="sortByMin">按预计时长排序</button>
+                <button class="btn small" id="sortByDone">已完成置底/还原</button>
+              </div>
+              <div class="hint">这些操作只影响当天列表，不会改其他日期。</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Backup modal -->
+  <div class="modalMask" id="modalMask">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="backup modal">
+      <div class="mhd">
+        <h3>导出 / 导入（全量数据）</h3>
+        <button class="btn small" id="closeBackup">关闭</button>
+      </div>
+      <div class="mbd">
+        <textarea class="ta" id="backupText" placeholder="这里会显示导出的 JSON。导入时把 JSON 粘贴到这里。"></textarea>
+        <div class="row">
+          <button class="btn primary" id="exportBtn">导出 JSON</button>
+          <button class="btn" id="copyBtn">复制</button>
+          <button class="btn danger" id="importBtn">导入（覆盖）</button>
+        </div>
+        <div class="hint">
+          注意：导入会覆盖当前浏览器里已有的数据。建议先导出一份备份再导入。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  // ===================== Storage =====================
+  const STORAGE_PREFIX = "dailyPlan_"; // dailyPlan_YYYY-MM-DD
+  const THEME_KEY = "dailyPlan_theme";
+  const SORT_KEY = "dailyPlan_sortMode";
+
+  // ===================== State =====================
+  let currentDate = new Date();
+  let tasks = []; // {id, text, minutes, done, createdAt}
+  let sortMode = localStorage.getItem(SORT_KEY) || "none"; // none|min|doneToggle
+  let doneToBottom = false;
+
+  // ===================== Utils =====================
+  const $ = (id) => document.getElementById(id);
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const formatDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  const weekdayCN = (d) => ["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];
+  const keyOf = (dateStr) => `${STORAGE_PREFIX}${dateStr}`;
+  const nowISO = () => new Date().toISOString();
+
+  function toast(msg){
+    const box = $("toast");
+    const el = document.createElement("div");
+    el.className = "item";
+    el.textContent = msg;
+    box.appendChild(el);
+    setTimeout(()=>{ el.style.opacity = "0"; el.style.transform = "translateY(6px)"; }, 1700);
+    setTimeout(()=>{ el.remove(); }, 2100);
+  }
+
+  function setSavedBadge(text){
+    $("saveBadge").textContent = text;
+  }
+
+  // ===================== Theme =====================
+  function applyTheme(theme){
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(THEME_KEY, theme);
+    $("themeBtn").textContent = theme === "light" ? "🌙 主题" : "🌓 主题";
+  }
+  function initTheme(){
+    const saved = localStorage.getItem(THEME_KEY);
+    if(saved){
+      applyTheme(saved);
+      return;
+    }
+    // default by prefers-color-scheme
+    const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+    applyTheme(prefersLight ? "light" : "dark");
+  }
+
+  // ===================== Load/Save =====================
+  function loadForDate(d){
+    const dateStr = formatDate(d);
+    const raw = localStorage.getItem(keyOf(dateStr));
+    tasks = raw ? safeParse(raw, []) : [];
+    // normalize
+    tasks = tasks.map(t => ({
+      id: t.id || cryptoId(),
+      text: String(t.text || "").trim(),
+      minutes: Math.max(1, parseInt(t.minutes, 10) || 1),
+      done: !!t.done,
+      createdAt: t.createdAt || nowISO()
+    })).filter(t => t.text);
+    applySort();
+    setSavedBadge("已加载");
+  }
+
+  function saveForDate(){
+    const dateStr = formatDate(currentDate);
+    localStorage.setItem(keyOf(dateStr), JSON.stringify(tasks));
+    setSavedBadge("已保存");
+  }
+
+  function safeParse(s, fallback){
+    try { return JSON.parse(s); } catch { return fallback; }
+  }
+
+  function cryptoId(){
+    // lightweight id; works offline
+    return (crypto?.randomUUID?.() || ("id_" + Math.random().toString(16).slice(2) + Date.now().toString(16)));
+  }
+
+  // ===================== Stats =====================
+  function computeStats(list){
+    const total = list.length;
+    const done = list.filter(t => t.done).length;
+    const allMin = list.reduce((a,t)=>a+t.minutes,0);
+    const doneMin = list.filter(t=>t.done).reduce((a,t)=>a+t.minutes,0);
+    const rate = total ? Math.round((done/total)*100) : 0;
+    const timeRate = allMin ? Math.round((doneMin/allMin)*100) : 0;
+    return { total, done, allMin, doneMin, rate, timeRate };
+  }
+
+  // ===================== Render =====================
+  function renderHeader(){
+    const d = currentDate;
+    $("dateText").textContent = formatDate(d);
+    $("weekText").textContent = weekdayCN(d);
+
+    const stats = computeStats(tasks);
+    $("rateBadge").textContent = `${stats.rate}%`;
+    $("ringPct").textContent = `${stats.rate}%`;
+    $("ringLabel").textContent = `${stats.done} / ${stats.total}`;
+
+    // ring animate
+    const C = 2 * Math.PI * 46; // ~289.026
+    const off = C * (1 - stats.rate / 100);
+    const ring = document.querySelector(".ring .prog");
+    ring.style.strokeDasharray = String(C.toFixed(1));
+    ring.style.strokeDashoffset = String(off.toFixed(1));
+
+    $("barDoneTxt").textContent = `${stats.rate}%`;
+    $("barMinTxt").textContent = `${stats.timeRate}%`;
+    $("barDone").style.width = `${stats.rate}%`;
+    $("barMin").style.width = `${stats.timeRate}%`;
+
+    $("stTotal").textContent = stats.total;
+    $("stDone").textContent = stats.done;
+    $("stAllMin").textContent = stats.allMin;
+    $("stDoneMin").textContent = stats.doneMin;
+
+    // confetti when all done
+    if(stats.total > 0 && stats.done === stats.total){
+      burstConfetti();
+      $("trendBadge").textContent = "🎉 全部完成";
+    }else{
+      $("trendBadge").textContent = stats.total ? "进行中" : "—";
+    }
+  }
+
+  function renderTasks(){
+    const list = $("taskList");
+    list.innerHTML = "";
+    $("emptyBox").style.display = tasks.length ? "none" : "block";
+
+    for(const t of tasks){
+      const row = document.createElement("div");
+      row.className = "task" + (t.done ? " done" : "");
+      row.dataset.id = t.id;
+
+      const chk = document.createElement("div");
+      chk.className = "chk";
+      chk.title = "完成 / 取消完成";
+      chk.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M6.4 11.2 3.5 8.3l-1 1 3.9 3.9L14 5.6l-1-1-6.6 6.6Z" fill="currentColor"></path>
+      </svg>`;
+      chk.onclick = () => {
+        t.done = !t.done;
+        saveForDate();
+        renderAll(true);
+      };
+
+      const main = document.createElement("div");
+      main.className = "tMain";
+      const meta = t.done ? "已完成" : "未完成";
+      main.innerHTML = `
+        <div class="tText" title="${escapeHtml(t.text)}">${escapeHtml(t.text)}</div>
+        <div class="tMeta">
+          <span class="tag"><span class="miniDot"></span>${meta}</span>
+          <span class="tag">⏱️ ${t.minutes} 分钟</span>
+        </div>
+      `;
+
+      const btns = document.createElement("div");
+      btns.className = "tBtns";
+      const edit = document.createElement("button");
+      edit.className = "btn small";
+      edit.textContent = "编辑";
+      edit.onclick = () => openEdit(t.id);
+
+      const del = document.createElement("button");
+      del.className = "btn small danger";
+      del.textContent = "删除";
+      del.onclick = () => {
+        if(confirm("确定删除这条任务吗？")){
+          tasks = tasks.filter(x => x.id !== t.id);
+          saveForDate();
+          renderAll(true);
+          toast("已删除");
+        }
+      };
+
+      btns.appendChild(edit);
+      btns.appendChild(del);
+
+      row.appendChild(chk);
+      row.appendChild(main);
+      row.appendChild(btns);
+
+      list.appendChild(row);
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+  }
+
+  function renderTrend(){
+    // last 7 days incl current
+    const days = [];
+    const base = new Date(currentDate);
+    base.setHours(12,0,0,0);
+    for(let i=6;i>=0;i--){
+      const d = new Date(base);
+      d.setDate(base.getDate() - i);
+      const dateStr = formatDate(d);
+      const raw = localStorage.getItem(keyOf(dateStr));
+      const arr = raw ? safeParse(raw, []) : [];
+      const st = computeStats(arr);
+      days.push({ dateStr, rate: st.rate, total: st.total });
+    }
+
+    const W = 600, H = 160;
+    const padX = 26, padY = 18;
+    const innerW = W - padX*2;
+    const innerH = H - padY*2;
+
+    const pts = days.map((d, idx) => {
+      const x = padX + (innerW * (idx/(days.length-1)));
+      const y = padY + (innerH * (1 - d.rate/100));
+      return {x,y, ...d};
+    });
+
+    // line path
+    const dLine = pts.map((p,i)=> `${i===0?"M":"L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+    // area path
+    const dArea = `${dLine} L ${pts[pts.length-1].x.toFixed(1)} ${(padY+innerH).toFixed(1)} L ${pts[0].x.toFixed(1)} ${(padY+innerH).toFixed(1)} Z`;
+
+    $("trendLine").setAttribute("d", dLine);
+    $("trendArea").setAttribute("d", dArea);
+
+    // dots + labels
+    const dots = $("trendDots");
+    dots.innerHTML = "";
+    const axis = $("trendAxis");
+    axis.innerHTML = "";
+
+    for(let i=0;i<pts.length;i++){
+      const p = pts[i];
+      const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("cx", p.x);
+      c.setAttribute("cy", p.y);
+      c.setAttribute("r", 5);
+      c.setAttribute("fill", "rgba(124,92,255,.95)");
+      c.setAttribute("stroke", "rgba(255,255,255,.18)");
+      c.setAttribute("stroke-width", "2");
+      c.style.cursor = "default";
+      c.onmouseenter = () => {
+        $("trendBadge").textContent = `${p.dateStr} · ${p.rate}% (${p.total}条)`;
+      };
+      c.onmouseleave = () => {
+        const st = computeStats(tasks);
+        $("trendBadge").textContent = (st.total && st.done===st.total) ? "🎉 全部完成" : (st.total ? "进行中" : "—");
+      };
+      dots.appendChild(c);
+
+      // x label (show 3 labels)
+      if(i===0 || i===3 || i===6){
+        const tx = document.createElementNS("http://www.w3.org/2000/svg","text");
+        tx.setAttribute("x", p.x);
+        tx.setAttribute("y", 150);
+        tx.setAttribute("text-anchor", "middle");
+        tx.setAttribute("fill", "rgba(255,255,255,.55)");
+        if(document.documentElement.dataset.theme==="light"){
+          tx.setAttribute("fill", "rgba(0,0,0,.45)");
+        }
+        tx.setAttribute("font-size","11");
+        tx.textContent = p.dateStr.slice(5);
+        axis.appendChild(tx);
+      }
+    }
+
+    // baseline grid
+    const grid = [0,50,100];
+    for(const g of grid){
+      const y = padY + (innerH * (1 - g/100));
+      const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("x1", padX);
+      line.setAttribute("x2", W-padX);
+      line.setAttribute("y1", y);
+      line.setAttribute("y2", y);
+      line.setAttribute("stroke", document.documentElement.dataset.theme==="light" ? "rgba(0,0,0,.08)" : "rgba(255,255,255,.08)");
+      line.setAttribute("stroke-width","1");
+      axis.appendChild(line);
+
+      const ty = document.createElementNS("http://www.w3.org/2000/svg","text");
+      ty.setAttribute("x", 6);
+      ty.setAttribute("y", y+4);
+      ty.setAttribute("fill", document.documentElement.dataset.theme==="light" ? "rgba(0,0,0,.45)" : "rgba(255,255,255,.55)");
+      ty.setAttribute("font-size","11");
+      ty.textContent = g + "%";
+      axis.appendChild(ty);
+    }
+  }
+
+  function renderAll(fromAction=false){
+    if(fromAction) setSavedBadge("已保存");
+    renderHeader();
+    renderTasks();
+    renderTrend();
+  }
+
+  // ===================== Sorting / Ops =====================
+  function applySort(){
+    if(sortMode === "min"){
+      tasks.sort((a,b)=> (a.minutes - b.minutes) || (a.createdAt > b.createdAt ? 1 : -1));
+    }else if(sortMode === "doneToggle"){
+      if(doneToBottom){
+        tasks.sort((a,b)=> Number(a.done) - Number(b.done));
+      } // else keep as is
+    }
+  }
+
+  function sortByMinutes(){
+    sortMode = "min";
+    localStorage.setItem(SORT_KEY, sortMode);
+    tasks.sort((a,b)=> (a.minutes - b.minutes) || (a.createdAt > b.createdAt ? 1 : -1));
+    saveForDate();
+    renderAll(true);
+    toast("已按时长排序");
+  }
+
+  function toggleDoneBottom(){
+    sortMode = "doneToggle";
+    localStorage.setItem(SORT_KEY, sortMode);
+    doneToBottom = !doneToBottom;
+    applySort();
+    saveForDate();
+    renderAll(true);
+    toast(doneToBottom ? "已完成置底" : "已恢复原顺序");
+  }
+
+  function copyUnfinishedToTomorrow(){
+    const unfinished = tasks.filter(t => !t.done);
+    if(!unfinished.length){
+      toast("没有未完成任务");
+      return;
+    }
+    const tomorrow = new Date(currentDate);
+    tomorrow.setDate(tomorrow.getDate()+1);
+    const dateStr = formatDate(tomorrow);
+    const raw = localStorage.getItem(keyOf(dateStr));
+    const arr = raw ? safeParse(raw, []) : [];
+    const merged = arr.concat(unfinished.map(t => ({
+      id: cryptoId(),
+      text: t.text,
+      minutes: t.minutes,
+      done: false,
+      createdAt: nowISO()
+    })));
+    localStorage.setItem(keyOf(dateStr), JSON.stringify(merged));
+    toast("已复制到明天");
+  }
+
+  // ===================== CRUD =====================
+  function validateInputs(text, minutes){
+    const t = String(text||"").trim();
+    const m = parseInt(minutes,10);
+    if(!t) return {ok:false, msg:"任务内容不能为空"};
+    if(!Number.isFinite(m) || m<=0) return {ok:false, msg:"预计分钟必须是正整数"};
+    return {ok:true, text:t, minutes:m};
+  }
+
+  function addTask(){
+    const text = $("taskText").value;
+    const minutes = $("taskMin").value;
+    const v = validateInputs(text, minutes);
+    if(!v.ok){
+      toast(v.msg);
+      return;
+    }
+    tasks.unshift({
+      id: cryptoId(),
+      text: v.text,
+      minutes: v.minutes,
+      done: false,
+      createdAt: nowISO()
+    });
+    $("taskText").value = "";
+    $("taskMin").value = "";
+    applySort();
+    saveForDate();
+    renderAll(true);
+    toast("已添加");
+  }
+
+  function openEdit(id){
+    const t = tasks.find(x => x.id === id);
+    if(!t) return;
+    const newText = prompt("修改任务内容：", t.text);
+    if(newText === null) return;
+    const newMin = prompt("修改预计分钟（正整数）：", String(t.minutes));
+    if(newMin === null) return;
+
+    const v = validateInputs(newText, newMin);
+    if(!v.ok){
+      toast(v.msg);
+      return;
+    }
+    t.text = v.text;
+    t.minutes = v.minutes;
+    applySort();
+    saveForDate();
+    renderAll(true);
+    toast("已修改");
+  }
+
+  // ===================== Backup =====================
+  function allKeys(){
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith(STORAGE_PREFIX)) keys.push(k);
+    }
+    keys.sort();
+    return keys;
+  }
+
+  function exportAll(){
+    const obj = {};
+    for(const k of allKeys()){
+      obj[k] = safeParse(localStorage.getItem(k) || "[]", []);
+    }
+    const payload = {
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      data: obj
+    };
+    $("backupText").value = JSON.stringify(payload, null, 2);
+    toast("已导出");
+  }
+
+  async function copyText(){
+    const text = $("backupText").value || "";
+    if(!text.trim()){
+      toast("没有内容可复制");
+      return;
+    }
+    try{
+      if(navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(text);
+        toast("已复制");
+      }else{
+        $("backupText").select();
+        document.execCommand("copy");
+        toast("已复制");
+      }
+    }catch{
+      toast("复制失败：请手动全选复制");
+    }
+  }
+
+  function importAll(){
+    const raw = $("backupText").value || "";
+    if(!raw.trim()){
+      toast("请先粘贴 JSON");
+      return;
+    }
+    let payload;
+    try{
+      payload = JSON.parse(raw);
+    }catch{
+      toast("JSON 格式不正确");
+      return;
+    }
+    if(!payload || typeof payload !== "object" || !payload.data){
+      toast("导入数据结构不对");
+      return;
+    }
+    if(!confirm("导入会覆盖当前浏览器中已有的数据。确定继续吗？")) return;
+
+    // remove existing plan keys
+    for(const k of allKeys()) localStorage.removeItem(k);
+
+    // import
+    const data = payload.data;
+    for(const k in data){
+      if(k.startsWith(STORAGE_PREFIX)){
+        localStorage.setItem(k, JSON.stringify(data[k] || []));
+      }
+    }
+    toast("导入完成");
+    loadForDate(currentDate);
+    renderAll(true);
+  }
+
+  // ===================== Date nav =====================
+  function goDay(delta){
+    currentDate.setDate(currentDate.getDate() + delta);
+    loadForDate(currentDate);
+    renderAll();
+  }
+  function goToday(){
+    currentDate = new Date();
+    loadForDate(currentDate);
+    renderAll();
+  }
+
+  // ===================== Confetti =====================
+  const fx = $("fx");
+  const ctx = fx.getContext("2d");
+  let confetti = [];
+  let fxTimer = 0;
+
+  function resizeFX(){
+    fx.width = window.innerWidth * devicePixelRatio;
+    fx.height = window.innerHeight * devicePixelRatio;
+    fx.style.width = window.innerWidth + "px";
+    fx.style.height = window.innerHeight + "px";
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  }
+  window.addEventListener("resize", resizeFX);
+
+  function burstConfetti(){
+    // avoid spam
+    if(Date.now() - fxTimer < 1500) return;
+    fxTimer = Date.now();
+
+    const count = 140;
+    const w = window.innerWidth, h = window.innerHeight;
+    for(let i=0;i<count;i++){
+      confetti.push({
+        x: w*0.5 + (Math.random()-0.5)*120,
+        y: h*0.30 + (Math.random()-0.5)*40,
+        vx: (Math.random()-0.5)*6,
+        vy: Math.random()*-6 - 2,
+        g: 0.16 + Math.random()*0.12,
+        r: 2 + Math.random()*3,
+        a: 1,
+        rot: Math.random()*Math.PI,
+        vr: (Math.random()-0.5)*0.2,
+        hue: Math.random()*360
+      });
+    }
+  }
+
+  function drawFX(){
+    if(!confetti.length){
+      requestAnimationFrame(drawFX);
+      return;
+    }
+    ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+    for(const p of confetti){
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      p.a *= 0.992;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = clamp(p.a, 0, 1);
+      ctx.fillStyle = `hsl(${p.hue} 90% 60%)`;
+      ctx.fillRect(-p.r*2, -p.r, p.r*4, p.r*2);
+      ctx.restore();
+    }
+    confetti = confetti.filter(p => p.a > 0.05 && p.y < window.innerHeight + 60);
+    requestAnimationFrame(drawFX);
+  }
+
+  // ===================== Events =====================
+  function bind(){
+    $("addTask").onclick = addTask;
+    $("taskText").addEventListener("keydown", (e)=>{ if(e.key==="Enter") addTask(); });
+    $("taskMin").addEventListener("keydown", (e)=>{ if(e.key==="Enter") addTask(); });
+
+    $("prevDay").onclick = () => goDay(-1);
+    $("nextDay").onclick = () => goDay(1);
+    $("todayBtn").onclick = goToday;
+
+    $("clearDay").onclick = () => {
+      if(!tasks.length){ toast("当天没有任务"); return; }
+      if(confirm("确定清空当天所有任务吗？")){
+        tasks = [];
+        saveForDate();
+        renderAll(true);
+        toast("已清空");
+      }
+    };
+
+    // Theme toggle
+    $("themeBtn").onclick = () => {
+      const cur = document.documentElement.dataset.theme || "dark";
+      applyTheme(cur === "dark" ? "light" : "dark");
+      renderTrend(); // refresh axis colors
+      toast("主题已切换");
+    };
+
+    // Backup modal
+    $("openBackup").onclick = () => {
+      $("modalMask").style.display = "flex";
+      exportAll();
+      $("backupText").focus();
+    };
+    $("closeBackup").onclick = () => $("modalMask").style.display = "none";
+    $("modalMask").addEventListener("click", (e)=>{ if(e.target === $("modalMask")) $("modalMask").style.display = "none"; });
+
+    $("exportBtn").onclick = exportAll;
+    $("copyBtn").onclick = copyText;
+    $("importBtn").onclick = importAll;
+
+    // Quick ops
+    $("copyUnfinished").onclick = copyUnfinishedToTomorrow;
+    $("sortByMin").onclick = sortByMinutes;
+    $("sortByDone").onclick = toggleDoneBottom;
+  }
+
+  // ===================== Init =====================
+  function init(){
+    initTheme();
+    resizeFX();
+    bind();
+    loadForDate(currentDate);
+    renderAll();
+    requestAnimationFrame(drawFX);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
