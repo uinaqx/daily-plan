@@ -523,6 +523,7 @@
     .heatmapGrid{
       display:grid;
       grid-template-columns: repeat(7, var(--hmSize));
+      grid-auto-rows: var(--hmSize);
       gap: 6px;
       padding: 2px;
       justify-content:center;
@@ -530,9 +531,9 @@
     @media (max-width: 520px){
       :root{ --hmSize: 30px; }
     }
-    .hmCell{width: var(--hmSize);
-      height: var(--hmSize);
-      
+    .hmCell{
+      width: 100%;
+      height: 100%;
       aspect-ratio: 1 / 1;
       border-radius: 10px;
       border: 1px solid var(--stroke);
