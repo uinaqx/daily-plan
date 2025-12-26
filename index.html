@@ -655,7 +655,6 @@
 
           <div class="tasks" id="taskList"></div>
           <div class="empty" id="emptyBox" style="display:none;">
-            <div style="font-size:34px;margin-bottom:6px;">🐾</div>
             <div><strong>今天还没有任务</strong>，先加一条试试。</div>
           </div>
         </div>
@@ -1337,6 +1336,7 @@ function setSavedBadge(text){
   const ctx = fx.getContext("2d");
   let confetti = [];
   let fxTimer = 0;
+  let fxRunning = false;
 
   function resizeFX(){
     fx.width = window.innerWidth * devicePixelRatio;
@@ -1350,10 +1350,12 @@ function setSavedBadge(text){
   function burstConfetti(){
     // avoid spam
     if(Date.now() - fxTimer < 1500) return;
+    if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     fxTimer = Date.now();
 
-    const count = 180;
     const w = window.innerWidth, h = window.innerHeight;
+    const density = Math.round((w * h) / 20000);
+    const count = clamp(density, 60, 140);
 
     // Left-bottom cannon
     for(let i=0;i<count/2;i++){
@@ -1386,11 +1388,17 @@ function setSavedBadge(text){
         hue: Math.random()*360
       });
     }
+
+    if(!fxRunning){
+      fxRunning = true;
+      requestAnimationFrame(drawFX);
+    }
   }
 
   function drawFX(){
     if(!confetti.length){
-      requestAnimationFrame(drawFX);
+      ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+      fxRunning = false;
       return;
     }
     ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
@@ -1463,7 +1471,6 @@ function setSavedBadge(text){
     bind();
     loadForDate(currentDate);
     renderAll();
-    requestAnimationFrame(drawFX);
   }
 
   init();
