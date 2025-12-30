@@ -649,8 +649,16 @@
           <div class="stats" id="stats">
             <div class="stat"><div class="k">总任务</div><div class="v" id="stTotal">0</div><div class="s">条</div></div>
             <div class="stat"><div class="k">已完成</div><div class="v" id="stDone">0</div><div class="s">条</div></div>
-            <div class="stat"><div class="k">预计总时长</div><div class="v" id="stAllMin">0</div><div class="s">分钟</div></div>
-            <div class="stat"><div class="k">已完成时长</div><div class="v" id="stDoneMin">0</div><div class="s">分钟</div></div>
+            <div class="stat">
+              <div class="k">预计总时长</div>
+              <div class="v" id="stAllMin">0</div>
+              <div class="s">分钟 · <span id="stAllHour">0</span> 小时</div>
+            </div>
+            <div class="stat">
+              <div class="k">已完成时长</div>
+              <div class="v" id="stDoneMin">0</div>
+              <div class="s">分钟 · <span id="stDoneHour">0</span> 小时</div>
+            </div>
           </div>
 
           <div class="tasks" id="taskList"></div>
@@ -888,6 +896,11 @@ function setSavedBadge(text){
     return { total, done, allMin, doneMin, rate, timeRate };
   }
 
+  function formatHours(minutes){
+    const hours = minutes / 60;
+    return hours % 1 === 0 ? String(hours) : hours.toFixed(1).replace(/\.0$/, "");
+  }
+
   // ===================== Render =====================
   function renderHeader(){
     const d = currentDate;
@@ -915,6 +928,8 @@ function setSavedBadge(text){
     $("stDone").textContent = stats.done;
     $("stAllMin").textContent = stats.allMin;
     $("stDoneMin").textContent = stats.doneMin;
+    $("stAllHour").textContent = formatHours(stats.allMin);
+    $("stDoneHour").textContent = formatHours(stats.doneMin);
 
     // confetti when all done
     if(stats.total > 0 && stats.done === stats.total){
