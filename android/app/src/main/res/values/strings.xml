@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DailyPlan</string>
+    <string name="title_activity_main">DailyPlan</string>
+    <string name="package_name">com.dailyplan.app</string>
+    <string name="custom_url_scheme">com.dailyplan.app</string>
+</resources>
